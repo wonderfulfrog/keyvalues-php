@@ -1,0 +1,15 @@
+"KeyValues"
+{
+    "Key1" "Value1"
+    // a comment
+    "ComplexKey" 
+    {
+        "ComplexKey1" "ComplexValue1" // another comment
+        "ComplexKey2" "ComplexValue2"
+        "FurtherComplexity1" 
+        {
+            "ComplexKey3" "ComplexValue3"
+            "ComplexKey4" "ComplexValue4"
+        }
+    }
+}
