@@ -37,7 +37,7 @@ function VDFParse($filename) {
 
 		// Consume characters provided they are not special characters
 		if($reading) {
-			if($c != NEW_LINE && $c != C_RETURN && $c != QUOTE)
+			if($c != QUOTE)
 				$string .= $c;
 		}
 
