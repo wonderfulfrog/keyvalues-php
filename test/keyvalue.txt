@@ -1,6 +1,7 @@
 "KeyValues"
 {
     "Key1" "Value1"
+    "Key2" "\"EscapedValue\\2\""
     // a comment
     "ComplexKey" 
     {
