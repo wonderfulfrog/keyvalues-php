@@ -14,6 +14,7 @@ define("CURLY_BRACE_END", "}");
 define("NEW_LINE", "\n");
 define("C_RETURN", "\r");
 define("C_TAB", "\t");
+define("C_ESCAPE", "\\");
 
 function VDFParse($filename) {
 	$parsed = array();
@@ -24,6 +25,7 @@ function VDFParse($filename) {
 	$key = "";				// The discovered key
 	$value = "";			// The discovered corresponding value
 	$reading = false;		// Currently consuming characters
+	$lastCharSeen = "";		// Tracks the last character seen
 
 	$filecontent = file_get_contents($filename);
 
@@ -35,9 +37,9 @@ function VDFParse($filename) {
 
 	foreach($chars as $c) {
 
-		// Consume characters provided they are not special characters
+		// Dont consume any escapes or quotes (unless the last seen character is escaping them)
 		if($reading) {
-			if($c != QUOTE)
+			if(($c != C_ESCAPE && $c != QUOTE) || $lastCharSeen == C_ESCAPE)
 				$string .= $c;
 		}
 
@@ -52,9 +54,10 @@ function VDFParse($filename) {
 		// Handle the character
 		switch($c) {
 			case QUOTE:
-			$comment_chars_seen = 0;
-			$p++;	// Quote counter
-			if($p == 5) $p = 1;
+			if($lastCharSeen != C_ESCAPE) {
+				$comment_chars_seen = 0;
+				$p++;	// Quote counter
+				if($p == 5) $p = 1;
 				if($reading) {
 					// End parsing string
 					$reading = false;
@@ -73,6 +76,7 @@ function VDFParse($filename) {
 				else {
 					$reading = true;
 				}
+			}
 
 			break;
 
@@ -120,6 +124,8 @@ function VDFParse($filename) {
 				$comment_chars_seen = 0;
 
 		}
+
+		$lastCharSeen = $c;
 	}
 
 	return $parsed;
