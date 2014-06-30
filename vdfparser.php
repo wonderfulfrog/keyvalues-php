@@ -4,7 +4,7 @@
 
 	* VDF (Valve Data Format) file parser
 	* author: devinwl
-	* version: 1.0
+	* version: 1.02
 
 */
 
@@ -39,7 +39,10 @@ function VDFParse($filename) {
 
 		// Dont consume any escapes or quotes (unless the last seen character is escaping them)
 		if($reading) {
-			if(($c != C_ESCAPE && $c != QUOTE) || $lastCharSeen == C_ESCAPE)
+			if($lastCharSeen == C_ESCAPE) {
+				$string .= C_ESCAPE . $c;
+			}
+			else if($c != C_ESCAPE && $c != QUOTE)
 				$string .= $c;
 		}
 
