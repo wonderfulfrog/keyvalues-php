@@ -18,7 +18,7 @@ define("C_ESCAPE", "\\");
 
 function VDFParse($filename) {
 	$parsed = array();
-	$ptr = &$parsed;		
+	$ptr = &$parsed;
 	$path = '';				// The current level represented as a string
 	$p = 0;					// How many quotes have been seen
 	$string = "";			// The string of consumed characters
@@ -123,7 +123,7 @@ function VDFParse($filename) {
 
 			break;
 
-			default: 
+			default:
 				$comment_chars_seen = 0;
 
 		}
