@@ -1,7 +1,8 @@
 "KeyValues"
+// A comment with { curly braces }
 {
     "Key1" "Value1"
-    "Key2" "\"EscapedValue\\2\""
+    "Key2" "\"EscapedValue2\"\n\r"
     // a comment
     "ComplexKey" 
     {
