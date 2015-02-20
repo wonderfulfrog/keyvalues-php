@@ -7,8 +7,8 @@ $kv = VDFParse("keyvalue.txt");
 if($kv['KeyValues']['Key1'] != 'Value1')
 	die("Key1 != Value1");
 
-if($kv['KeyValues']['Key2'] != '"EscapedValue\\2"')
-	die("Key2 != \"EscapedValue\\2\"");
+if($kv['KeyValues']['Key2'] != '"EscapedValue2"\n\r')
+	die("Key2 != \"EscapedValue2\"\n\r");
 
 if($kv['KeyValues']['ComplexKey']['ComplexKey1'] != 'ComplexValue1')
 	die("ComplexKey1 != ComplexValue1");
