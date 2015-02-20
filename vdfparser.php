@@ -4,17 +4,19 @@
 
 	* VDF (Valve Data Format) file parser
 	* author: devinwl
-	* version: 1.03
+	* version: 1.04
 
 */
 
 define("QUOTE", "\"");
+define("SINGLE_QUOTE", "'");
 define("CURLY_BRACE_BEGIN", "{");
 define("CURLY_BRACE_END", "}");
 define("NEW_LINE", "\n");
 define("C_RETURN", "\r");
 define("C_TAB", "\t");
 define("C_ESCAPE", "\\");
+define('C_COMMENT', '/');
 
 function VDFParse($filename) {
 	$parsed = array();
@@ -26,11 +28,9 @@ function VDFParse($filename) {
 	$value = "";			// The discovered corresponding value
 	$reading = false;		// Currently consuming characters
 	$lastCharSeen = "";		// Tracks the last character seen
+	$comment_chars_seen = 0;        // Tracks the number of comments characters seen (2 comment characters designates the start of a comment)
 
 	$filecontent = file_get_contents($filename);
-
-	// Strip all comments before parsing
-	$filecontent = str_replace('!//.*!', '', $filecontent);
 
 	// Begin parsing by character
 	$chunks = str_split($filecontent, 2048);
@@ -45,7 +45,10 @@ function VDFParse($filename) {
 			// Dont consume any escapes or quotes (unless the last seen character is escaping them)
 			if($reading) {
 				if($lastCharSeen == C_ESCAPE) {
-					$string .= C_ESCAPE . $c;
+					if($c == QUOTE || $c == SINGLE_QUOTE || $c == C_ESCAPE)
+						$string .= $c;
+					else
+						$string .= C_ESCAPE . $c;
 				}
 				else if($c != C_ESCAPE && $c != QUOTE)
 					$string .= $c;
@@ -59,78 +62,94 @@ function VDFParse($filename) {
 				$p = 0;
 			}
 
-			// Handle the character
-			switch($c) {
-				case QUOTE:
-				if($lastCharSeen != C_ESCAPE) {
-					$comment_chars_seen = 0;
-					$p++;	// Quote counter
-					if($p == 5) $p = 1;
-					if($reading) {
-						// End parsing string
-						$reading = false;
+			// If I haven't seen a comment yet, parse the character
+			// Otherwise, ignore all characters until a newline
+			if($comment_chars_seen < 2) {
 
-						switch($p) {
-							case 2: // Key
-								$key = $string;
-								$string = '';
-							break;
-							case 4: // Value
-								$value = $string;
-								$string = '';
-							break;
+				// Handle the character
+				switch($c) {
+					case QUOTE:
+					if($lastCharSeen != C_ESCAPE) {
+						$comment_chars_seen = 0;
+						$p++;	// Quote counter
+						if($p == 5) $p = 1;
+						if($reading) {
+							// End parsing string
+							$reading = false;
+
+							switch($p) {
+								case 2: // Key
+									$key = $string;
+									$string = '';
+								break;
+								case 4: // Value
+									$value = $string;
+									$string = '';
+								break;
+							}
+						}
+						else {
+							$reading = true;
 						}
 					}
-					else {
-						$reading = true;
-					}
+
+					break;
+
+					case CURLY_BRACE_BEGIN:
+						$comment_chars_seen = 0;
+						if(!(strlen($key)>0)) { print_r($parsed); die("Not properly formed key-value structure"); }
+
+						$ptr[$key] = array();
+						$ptr = &$ptr[$key];
+
+						// Keep track of depth via a string path
+						if($path == '')
+							$path .= $key;
+						else
+							$path .= '.' . $key;
+
+						// Reset for new level
+						$string = '';
+						$key = '';
+						$value = '';
+						$p = 0;
+
+					break;
+
+					case CURLY_BRACE_END:
+						$ptr = &$parsed;
+						$full_path = explode(".", $path);
+						$new_path = '';
+						if(count($full_path) > 0) {
+							$i = 0;
+							for($i = 0; $i < count($full_path)-1; $i++) {
+								if($new_path == '')
+									$new_path .= $full_path[$i];
+								else
+									$new_path .= '.' . $full_path[$i];
+								$ptr = &$ptr[$full_path[$i]];
+							}
+						}
+
+						$path = $new_path;
+
+					break;
+
+					case C_COMMENT:
+						$comment_chars_seen++;
+
+					break;
+
+					default:
+						$comment_chars_seen = 0;
+
 				}
 
-				break;
+			}
 
-				case CURLY_BRACE_BEGIN:
-					$comment_chars_seen = 0;
-					if(!(strlen($key)>0)) die("Not properly formed key-value structure" . print_r($parsed));
-
-					$ptr[$key] = array();
-					$ptr = &$ptr[$key];
-
-					// Keep track of depth via a string path
-					if($path == '')
-						$path .= $key;
-					else
-						$path .= '.' . $key;
-
-					// Reset for new level
-					$string = '';
-					$key = '';
-					$value = '';
-					$p = 0;
-
-				break;
-
-				case CURLY_BRACE_END:
-					$ptr = &$parsed;
-					$full_path = explode(".", $path);
-					$new_path = '';
-					if(count($full_path) > 0) {
-						$i = 0;
-						for($i = 0; $i < count($full_path)-1; $i++) {
-							if($new_path == '')
-								$new_path .= $full_path[$i];
-							else
-								$new_path .= '.' . $full_path[$i];
-							$ptr = &$ptr[$full_path[$i]];
-						}
-					}
-
-					$path = $new_path;
-
-				break;
-
-				default:
-					$comment_chars_seen = 0;
-
+			// Reset comment counter
+			if($c == NEW_LINE) {
+				$comment_chars_seen = 0;
 			}
 
 			$lastCharSeen = $c;
