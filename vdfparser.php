@@ -1,11 +1,9 @@
 <?php
 
 /*
-
 	* VDF (Valve Data Format) file parser
 	* author: devinwl
-	* version: 1.04
-
+	* version: 1.05
 */
 
 define("QUOTE", "\"");
@@ -21,10 +19,10 @@ define('C_COMMENT', '/');
 function VDFParse($filename) {
 	$parsed = array();
 	$ptr = &$parsed;
-	$path = '';				// The current level represented as a string
-	$p = 0;					// How many quotes have been seen
+	$path = '';			// The current level represented as a string
+	$p = 0;				// How many quotes have been seen
 	$string = "";			// The string of consumed characters
-	$key = "";				// The discovered key
+	$key = "";			// The discovered key
 	$value = "";			// The discovered corresponding value
 	$reading = false;		// Currently consuming characters
 	$lastCharSeen = "";		// Tracks the last character seen
@@ -136,7 +134,9 @@ function VDFParse($filename) {
 					break;
 
 					case C_COMMENT:
-						$comment_chars_seen++;
+						// Only look for comments if we're not currently reading a key or value
+						if(!$reading)
+							$comment_chars_seen++;
 
 					break;
 
