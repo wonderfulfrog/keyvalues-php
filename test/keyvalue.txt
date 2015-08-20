@@ -13,5 +13,7 @@
             "ComplexKey3" "ComplexValue3"
             "ComplexKey4" "ComplexValue4"
         }
+
+        "ValueWithCurlyBraces" "Value { I have special chars }"
     }
 }

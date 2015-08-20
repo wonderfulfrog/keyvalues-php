@@ -3,7 +3,7 @@
 /*
 	* VDF (Valve Data Format) file parser
 	* author: devinwl
-	* version: 1.05
+	* version: 1.06
 */
 
 define("QUOTE", "\"");
@@ -94,42 +94,48 @@ function VDFParse($filename) {
 					break;
 
 					case CURLY_BRACE_BEGIN:
-						$comment_chars_seen = 0;
-						if(!(strlen($key)>0)) { print_r($parsed); die("Not properly formed key-value structure"); }
+						// Ignore character if we are consuming a key/value
+						if(!$reading) {
+							$comment_chars_seen = 0;
+							if(!(strlen($key)>0)) { print_r($parsed); die("Not properly formed key-value structure"); }
 
-						$ptr[$key] = array();
-						$ptr = &$ptr[$key];
+							$ptr[$key] = array();
+							$ptr = &$ptr[$key];
 
-						// Keep track of depth via a string path
-						if($path == '')
-							$path .= $key;
-						else
-							$path .= '.' . $key;
+							// Keep track of depth via a string path
+							if($path == '')
+								$path .= $key;
+							else
+								$path .= '.' . $key;
 
-						// Reset for new level
-						$string = '';
-						$key = '';
-						$value = '';
-						$p = 0;
+							// Reset for new level
+							$string = '';
+							$key = '';
+							$value = '';
+							$p = 0;
+						}
 
 					break;
 
 					case CURLY_BRACE_END:
-						$ptr = &$parsed;
-						$full_path = explode(".", $path);
-						$new_path = '';
-						if(count($full_path) > 0) {
-							$i = 0;
-							for($i = 0; $i < count($full_path)-1; $i++) {
-								if($new_path == '')
-									$new_path .= $full_path[$i];
-								else
-									$new_path .= '.' . $full_path[$i];
-								$ptr = &$ptr[$full_path[$i]];
+						// Ignore character if we are consuming a key/value
+						if(!$reading) {
+							$ptr = &$parsed;
+							$full_path = explode(".", $path);
+							$new_path = '';
+							if(count($full_path) > 0) {
+								$i = 0;
+								for($i = 0; $i < count($full_path)-1; $i++) {
+									if($new_path == '')
+										$new_path .= $full_path[$i];
+									else
+										$new_path .= '.' . $full_path[$i];
+									$ptr = &$ptr[$full_path[$i]];
+								}
 							}
-						}
 
-						$path = $new_path;
+							$path = $new_path;
+						}
 
 					break;
 
