@@ -135,8 +135,6 @@ function VDFParse($filename) {
 								}
 							}
 
-							echo $new_path . "\n";
-
 							$path = $new_path;
 						}
 
