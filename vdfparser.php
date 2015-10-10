@@ -3,7 +3,7 @@
 /*
 	* VDF (Valve Data Format) file parser
 	* author: devinwl
-	* version: 1.06
+	* version: 1.07
 */
 
 define("QUOTE", "\"");
@@ -14,7 +14,8 @@ define("NEW_LINE", "\n");
 define("C_RETURN", "\r");
 define("C_TAB", "\t");
 define("C_ESCAPE", "\\");
-define('C_COMMENT', '/');
+define("C_COMMENT", '/');
+define("PATH_DEPTH_SEPARATOR", '>>>>');
 
 function VDFParse($filename) {
 	$parsed = array();
@@ -106,7 +107,7 @@ function VDFParse($filename) {
 							if($path == '')
 								$path .= $key;
 							else
-								$path .= '.' . $key;
+								$path .= PATH_DEPTH_SEPARATOR . $key;
 
 							// Reset for new level
 							$string = '';
@@ -121,7 +122,7 @@ function VDFParse($filename) {
 						// Ignore character if we are consuming a key/value
 						if(!$reading) {
 							$ptr = &$parsed;
-							$full_path = explode(".", $path);
+							$full_path = explode(PATH_DEPTH_SEPARATOR, $path);
 							$new_path = '';
 							if(count($full_path) > 0) {
 								$i = 0;
@@ -129,10 +130,12 @@ function VDFParse($filename) {
 									if($new_path == '')
 										$new_path .= $full_path[$i];
 									else
-										$new_path .= '.' . $full_path[$i];
+										$new_path .= PATH_DEPTH_SEPARATOR . $full_path[$i];
 									$ptr = &$ptr[$full_path[$i]];
 								}
 							}
+
+							echo $new_path . "\n";
 
 							$path = $new_path;
 						}
